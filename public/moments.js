@@ -36,7 +36,7 @@ export async function telescopicIntro(slug, imageUrl, name, ready=Promise.resolv
   } finally { el.remove(); }
 }
 export async function orderConfirmation(name,logoUrl){
-  const el = overlay('<section class="sent-card" role="status"><span aria-hidden="true">✓</span><h2>Ordine inviato!</h2><p>Grazie per aver scelto RAIA S.r.l.</p></section>', 'Ordine inviato');
+  const el = overlay('<section class="sent-card order-sent" role="status"><span aria-hidden="true">✓</span><h2>Ordine inviato!</h2><p>Grazie per aver scelto RAIA S.r.l.</p></section>', 'Ordine inviato');
   if(logoUrl){
     const logo=new Image();
     logo.alt=name;
