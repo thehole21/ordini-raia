@@ -96,11 +96,6 @@ export default async function handler(req,res){
       const result=await db(table+(body.id?'?id=eq.'+body.id:''),{method:body.id?'PATCH':'POST',data});
       return send(200,{record:result[0]});
     }
-    if(action==='status'){
-      if(!uuid(body.id))throw new HttpError(400,'Ordine non valido.');
-      await rpc('ordini_set_status',{target_order:body.id,new_status:text(body.status,40)});
-      return send(200,{ok:true});
-    }
     if(action==='member'){
       if(!uuid(body.company_id))throw new HttpError(400,'Cliente non valido.');
       const name=text(body.name,160),email=text(body.email,254).toLowerCase();

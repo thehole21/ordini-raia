@@ -44,7 +44,7 @@ create table public.ordini_orders (
  company_id uuid not null references public.ordini_companies(id),
  created_by uuid not null references auth.users(id),
  created_at timestamptz not null default now(),
- status text not null default 'Da confermare' check(status in ('Da confermare','Confermato','In lavorazione','Pronto','Consegnato','Annullato')),
+ status text not null default 'Da elaborare' check(status in ('Da elaborare','Confermato','In lavorazione','Pronto','Consegnato','Annullato')),
  requested_date date, address text not null default '', notes text not null default '',
  total numeric(14,2) check(total>=0),
  gestionale_order_id text unique
@@ -133,47 +133,22 @@ begin
   if qty<product.min_qty or qty>1000000 or (qty-product.min_qty)%product.qty_step<>0 then raise exception 'INVALID_QUANTITY'; end if;
   line_total:=round(qty*product.price,2); amount:=amount+line_total; item_id:=gen_random_uuid();
   snapshot:=snapshot||jsonb_build_array(jsonb_build_object('id',item_id,'product_id',product.id,'name',product.name,'unit',product.unit,'quantity',qty,'price',product.price,'total',line_total));
-  work_lines:=work_lines||jsonb_build_array(jsonb_build_object('id','portal_'||item_id::text,'description',product.name,'qty',qty,'unit',product.unit,'price',coalesce(product.price,0),'production',case when product.price is null then jsonb_build_object('quantity',qty::text,'priceUnspecified',true,'requestedDate',coalesce(delivery_date::text,''),'invoicing','','terminated',false) else null end,'status','In attesa conferma','operatorId','','invoiceId',null,'notes',product.description));
+  work_lines:=work_lines||jsonb_build_array(jsonb_build_object('id','portal_'||item_id::text,'description',concat_ws(' · ',nullif(product.sku,''),product.name,product.description),'qty',qty,'unit',product.unit,'price',coalesce(product.price,0),'production',case when product.price is null then jsonb_build_object('quantity',qty::text,'priceUnspecified',true,'requestedDate',coalesce(delivery_date::text,''),'invoicing','','terminated',false,'supplier','','requestedText','','ddtNumber','','delivery','') else null end,'status','Da elaborare','operatorId','','invoiceId',null,'notes',product.description));
  end loop;
  select * into ws from public.raia_workspace where id=1 for update;
  if not found or jsonb_typeof(ws.payload->'orders') is distinct from 'array' or jsonb_typeof(ws.payload->'clients') is distinct from 'array' then raise exception 'WORKSPACE_UNAVAILABLE'; end if;
  cid:=company.gestionale_client_id;
- if cid is not null and not exists(select 1 from jsonb_array_elements(ws.payload->'clients') c where c->>'id'=cid) then raise exception 'CLIENT_MAPPING_MISSING'; end if;
- if cid is null then
-  cid:='portal_'||company.id::text;
-  if not exists(select 1 from jsonb_array_elements(ws.payload->'clients') c where c->>'id'=cid) then
-   ws.payload:=jsonb_set(ws.payload,'{clients}',(ws.payload->'clients')||jsonb_build_array(jsonb_build_object('id',cid,'name',company.name,'email',company.email,'phone','','vat','','city','','address',company.address)));
-  end if;
-  update public.ordini_companies set gestionale_client_id=cid where id=company.id;
- end if;
+ if cid is null or not exists(select 1 from jsonb_array_elements(ws.payload->'clients') c where c->>'id'=cid) then raise exception 'CLIENT_MAPPING_MISSING'; end if;
  oid:='portal_'||request_id::text;
  insert into public.ordini_orders(id,company_id,created_by,requested_date,address,notes,total,gestionale_order_id)
  values(request_id,target_company,auth.uid(),delivery_date,coalesce(delivery_address,''),coalesce(order_notes,''),amount,oid) returning number into order_number;
  insert into public.ordini_order_items(id,order_id,product_id,name,unit,quantity,price,total)
  select (s->>'id')::uuid,request_id,(s->>'product_id')::uuid,s->>'name',s->>'unit',(s->>'quantity')::integer,(s->>'price')::numeric,(s->>'total')::numeric from jsonb_array_elements(snapshot) s;
- new_order:=jsonb_build_object('id',oid,'number','WEB-'||lpad(order_number::text,6,'0'),'title','Ordine dal portale clienti','customerRequestId',request_id,'clientId',cid,'created',to_char(now() at time zone 'Europe/Rome','YYYY-MM-DD'),'due',coalesce(delivery_date::text,''),'notes','Ordine portale — da confermare.'||E'\n'||coalesce(order_notes,'')||E'\nConsegna: '||coalesce(delivery_address,''),'lines',work_lines);
+ new_order:=jsonb_build_object('id',oid,'number','WEB-'||lpad(order_number::text,6,'0'),'title','Ordine dal portale clienti','clientId',cid,'created',to_char(now() at time zone 'Europe/Rome','YYYY-MM-DD'),'due',coalesce(delivery_date::text,''),'notes','Ordine dal portale clienti.'||E'\n'||coalesce(order_notes,'')||E'\nConsegna: '||coalesce(delivery_address,''),'lines',work_lines);
  update public.raia_workspace set payload=jsonb_set(ws.payload,'{orders}',jsonb_build_array(new_order)||(ws.payload->'orders')),revision=revision+1 where id=1;
  return request_id;
 end $$;
 create function public.ordini_submit(request_id uuid,target_company uuid,items jsonb,delivery_date date default null,delivery_address text default '',order_notes text default '') returns uuid language sql security invoker set search_path='' as $$ select ordini_private.submit(request_id,target_company,items,delivery_date,delivery_address,order_notes) $$;
 revoke all on function ordini_private.submit(uuid,uuid,jsonb,date,text,text),public.ordini_submit(uuid,uuid,jsonb,date,text,text) from public,anon;
 grant execute on function ordini_private.submit(uuid,uuid,jsonb,date,text,text),public.ordini_submit(uuid,uuid,jsonb,date,text,text) to authenticated;
-
-create function ordini_private.set_status(target_order uuid,new_status text) returns void language plpgsql security definer set search_path='' as $$
-declare o public.ordini_orders; ws public.raia_workspace; line_status text;
-begin
- if not ordini_private.is_staff() then raise exception 'FORBIDDEN'; end if;
- if new_status not in ('Da confermare','Confermato','In lavorazione','Pronto','Consegnato','Annullato') then raise exception 'INVALID_STATUS'; end if;
- select * into o from public.ordini_orders where id=target_order for update;
- if not found then raise exception 'ORDER_NOT_FOUND'; end if;
- select * into ws from public.raia_workspace where id=1 for update;
- line_status:=case new_status when 'Da confermare' then 'In attesa conferma' when 'Confermato' then 'Da elaborare' when 'Annullato' then 'Sospeso' else new_status end;
- update public.ordini_orders set status=new_status where id=target_order;
- if exists(select 1 from jsonb_array_elements(ws.payload->'orders') x where x->>'id'=o.gestionale_order_id) then
-  update public.raia_workspace set payload=jsonb_set(ws.payload,'{orders}',(select jsonb_agg(case when x->>'id'=o.gestionale_order_id then jsonb_set(x,'{lines}',(select jsonb_agg(jsonb_set(l,'{status}',to_jsonb(line_status))) from jsonb_array_elements(x->'lines') l)) else x end order by position) from jsonb_array_elements(ws.payload->'orders') with ordinality a(x,position))),revision=revision+1 where id=1;
- end if;
-end $$;
-create function public.ordini_set_status(target_order uuid,new_status text) returns void language sql security invoker set search_path='' as $$ select ordini_private.set_status(target_order,new_status) $$;
-revoke all on function ordini_private.set_status(uuid,text),public.ordini_set_status(uuid,text) from public,anon;
-grant execute on function ordini_private.set_status(uuid,text),public.ordini_set_status(uuid,text) to authenticated;
 
