@@ -1,0 +1,1 @@
+insert into public.ordini_memberships(user_id,company_id,name,email) select u.id,c.id,'Titocci',u.email from auth.users u cross join public.ordini_companies c where u.email='titocci@clienti.ordini.raiaweb.it' and c.slug='titocci' on conflict(user_id) do nothing;
