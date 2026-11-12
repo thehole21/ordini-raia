@@ -71,15 +71,15 @@ export default async function handler(req,res){
     const staff=await rpc('ordini_is_staff');
     const catalogManager=staff||await rpc('ordini_catalog_manager');
     if(action==='session'){
-      const [companies,memberships,products,orders,clients]=await Promise.all([
+      const [companies,memberships,products,orders,clients,sections]=await Promise.all([
         db('ordini_companies?select=*&order=name'),
         db('ordini_memberships?select=*&order=name'),
         db('ordini_products?select=*&order=created_at.desc'),
         db('ordini_orders?select=*,ordini_order_items(*)&order=created_at.desc&limit=200'),
-        staff?rpc('ordini_clients'):Promise.resolve([])
+        staff?rpc('ordini_clients'):Promise.resolve([]),db("ordini_sections?select=*&order=position")
       ]);
       if(!catalogManager&&!memberships.some(m=>m.user_id===user.id&&m.active))throw new HttpError(403,'Il tuo accesso non è ancora abilitato. Contatta RAIA.');
-      return send(200,{user:{id:user.id,email:user.email},staff,catalogManager,companies,memberships,products,orders,clients,canCreateUsers:staff&&!!process.env.SUPABASE_SECRET_KEY});
+      return send(200,{user:{id:user.id,email:user.email},staff,catalogManager,companies,memberships,products,orders,clients,sections,canCreateUsers:staff&&!!process.env.SUPABASE_SECRET_KEY});
     }
     if(req.method!=='POST')throw new HttpError(405,'Metodo non consentito.');
     if(action==='submit'){
@@ -89,7 +89,21 @@ export default async function handler(req,res){
       const id=await rpc('ordini_submit',{request_id:body.request_id,target_company:body.company_id,items:body.items,delivery_date:body.requested_date||null,delivery_address:text(body.address||'',1000),order_notes:text(body.notes||'')});
       return send(200,{id});
     }
-    if(!staff && !(catalogManager && action==='product'))throw new HttpError(403,'Accesso riservato a RAIA.');
+    if(!staff && !(catalogManager && ['product','section','remove-section','remove-product'].includes(action)))throw new HttpError(403,'Accesso riservato a RAIA.');
+    if(['section','remove-section','remove-product'].includes(action)){
+      if(!uuid(body.company_id))throw new HttpError(400,'Cliente non valido.');
+      if(action==='section'){
+        const name=text(body.name,80);
+        if(!name)throw new HttpError(400,'Inserisci un nome.');
+        await db('ordini_sections',{method:'POST',data:{company_id:body.company_id,name}});
+      }else{
+        if(!uuid(body.id))throw new HttpError(400,'Identificativo non valido.');
+        const query='?id=eq.'+body.id+'&company_id=eq.'+body.company_id;
+        if(action==='remove-section')await db('ordini_sections'+query,{method:'DELETE'});
+        else await db('ordini_products'+query,{method:'PATCH',data:{active:false}});
+      }
+      return send(200,{ok:true});
+    }
     if(action==='company'||action==='product'){
       const data=action==='company'?validateCompany(body):validateProduct(body);
       const table=action==='company'?'ordini_companies':'ordini_products';
