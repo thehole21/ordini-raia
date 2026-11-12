@@ -1,0 +1,11 @@
+create table ordini_private.catalog_admins(user_id uuid primary key references auth.users(id) on delete cascade);
+revoke all on ordini_private.catalog_admins from public,anon,authenticated;
+create function ordini_private.catalog_manager() returns boolean language sql stable security definer set search_path='' as $$select exists(select 1 from ordini_private.catalog_admins where user_id=auth.uid())$$;
+create function public.ordini_catalog_manager() returns boolean language sql stable security invoker set search_path='' as $$select ordini_private.catalog_manager()$$;
+revoke all on function ordini_private.catalog_manager(), public.ordini_catalog_manager() from public,anon;
+grant execute on function ordini_private.catalog_manager(), public.ordini_catalog_manager() to authenticated;
+create policy catalog_admin_companies on public.ordini_companies for select to authenticated using(ordini_private.catalog_manager());
+create policy catalog_admin_products on public.ordini_products for all to authenticated using(ordini_private.catalog_manager()) with check(ordini_private.catalog_manager());
+alter table public.ordini_products add column hide_photo boolean not null default false;
+alter table public.ordini_products drop constraint ordini_products_image_url_check;
+alter table public.ordini_products add constraint ordini_product_image_valid check(image_url='' or image_url ~ '^https://' or (length(image_url)<=100000 and image_url ~ '^data:image/webp;base64,[A-Za-z0-9+/]+=*$'));

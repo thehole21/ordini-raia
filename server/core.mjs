@@ -16,9 +16,9 @@ export function safeImage(value){
 }
 export function validateProduct(body){
   if(!uuid(body.company_id))throw new HttpError(400,'Seleziona un cliente.');
-  const p={company_id:body.company_id,name:text(body.name,160),description:text(body.description||''),category:text(body.category||'Stampa',80),sku:text(body.sku||'',80),unit:text(body.unit||'pz',20),image_url:text(body.image_url||'',2000),price:Number(body.price),min_qty:Number(body.min_qty),qty_step:Number(body.qty_step),active:body.active!==false};
-  if(!p.name||!Number.isFinite(p.price)||p.price<0||p.price>1000000||![p.min_qty,p.qty_step].every(n=>Number.isInteger(n)&&n>=1&&n<=1000000))throw new HttpError(400,'Controlla prezzo, quantità minima e incremento.');
-  safeImage(p.image_url); return p;
+  const p={company_id:body.company_id,name:text(body.name,160),description:text(body.description||''),category:text(body.category||'Stampa',80),sku:text(body.sku||'',80),unit:text(body.unit||'pz',20),hide_photo:body.hide_photo===true,image_url:text(body.image_url||'',100000),price:body.price==null||body.price===''?null:Number(body.price),min_qty:Number(body.min_qty),qty_step:Number(body.qty_step),active:body.active!==false};
+  if(!p.name||(p.price!==null&&!Number.isFinite(p.price))||p.price<0||p.price>1000000||![p.min_qty,p.qty_step].every(n=>Number.isInteger(n)&&n>=1&&n<=1000000))throw new HttpError(400,'Controlla prezzo, quantità minima e incremento.');
+  if(!/^data:image\/webp;base64,[A-Za-z0-9+/]+=*$/.test(p.image_url))safeImage(p.image_url); return p;
 }
 export function parseCookies(header=''){
   return Object.fromEntries(header.split(';').flatMap(part=>{const i=part.indexOf('=');if(i<0)return [];try{return [[part.slice(0,i).trim(),decodeURIComponent(part.slice(i+1))]];}catch{return [];}}));

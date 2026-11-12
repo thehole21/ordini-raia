@@ -24,8 +24,8 @@ export default async function handler(req,res){
     if(req.method==='POST'){
       if(!String(req.headers['content-type']||'').startsWith('application/json'))throw new HttpError(415,'Formato richiesta non valido.');
       if(req.body!==undefined)body=typeof req.body==='string'?JSON.parse(req.body):req.body;
-      else{let raw='';for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>65536)throw new HttpError(413,'Richiesta troppo grande.');}body=JSON.parse(raw||'{}');}
-      if(!body||typeof body!=='object'||Array.isArray(body)||Buffer.byteLength(JSON.stringify(body))>65536)throw new HttpError(400,'Richiesta non valida.');
+      else{let raw='';for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>120000)throw new HttpError(413,'Richiesta troppo grande.');}body=JSON.parse(raw||'{}');}
+      if(!body||typeof body!=='object'||Array.isArray(body)||Buffer.byteLength(JSON.stringify(body))>120000)throw new HttpError(400,'Richiesta non valida.');
     }
     const upstream=async(path,{method='GET',data,token,secret=false}={})=>{
       const apiKey=secret?process.env.SUPABASE_SECRET_KEY:key;
@@ -69,6 +69,7 @@ export default async function handler(req,res){
     const db=(path,options={})=>upstream('/rest/v1/'+path,{...options,token});
     const rpc=(name,data={})=>db('rpc/'+name,{method:'POST',data});
     const staff=await rpc('ordini_is_staff');
+    const catalogManager=staff||await rpc('ordini_catalog_manager');
     if(action==='session'){
       const [companies,memberships,products,orders,clients]=await Promise.all([
         db('ordini_companies?select=*&order=name'),
@@ -77,8 +78,8 @@ export default async function handler(req,res){
         db('ordini_orders?select=*,ordini_order_items(*)&order=created_at.desc&limit=200'),
         staff?rpc('ordini_clients'):Promise.resolve([])
       ]);
-      if(!staff&&!memberships.some(m=>m.user_id===user.id&&m.active))throw new HttpError(403,'Il tuo accesso non è ancora abilitato. Contatta RAIA.');
-      return send(200,{user:{id:user.id,email:user.email},staff,companies,memberships,products,orders,clients,canCreateUsers:staff&&!!process.env.SUPABASE_SECRET_KEY});
+      if(!catalogManager&&!memberships.some(m=>m.user_id===user.id&&m.active))throw new HttpError(403,'Il tuo accesso non è ancora abilitato. Contatta RAIA.');
+      return send(200,{user:{id:user.id,email:user.email},staff,catalogManager,companies,memberships,products,orders,clients,canCreateUsers:staff&&!!process.env.SUPABASE_SECRET_KEY});
     }
     if(req.method!=='POST')throw new HttpError(405,'Metodo non consentito.');
     if(action==='submit'){
@@ -88,7 +89,7 @@ export default async function handler(req,res){
       const id=await rpc('ordini_submit',{request_id:body.request_id,target_company:body.company_id,items:body.items,delivery_date:body.requested_date||null,delivery_address:text(body.address||'',1000),order_notes:text(body.notes||'')});
       return send(200,{id});
     }
-    if(!staff)throw new HttpError(403,'Accesso riservato a RAIA.');
+    if(!staff && !(catalogManager && action==='product'))throw new HttpError(403,'Accesso riservato a RAIA.');
     if(action==='company'||action==='product'){
       const data=action==='company'?validateCompany(body):validateProduct(body);
       const table=action==='company'?'ordini_companies':'ordini_products';

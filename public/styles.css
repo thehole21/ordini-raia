@@ -44,3 +44,5 @@ nav button svg{width:21px;height:21px;flex:none}nav button{display:inline-flex;a
 .handler-slider{animation:fork-extension 1s cubic-bezier(.3,0,.22,1) both}
 @keyframes fork-extension{from{transform:translateX(-34px)}to{transform:translateX(32px)}}
 @media(prefers-reduced-motion:reduce){.handler-art{display:none}}
+
+.editor{max-width:720px;background:white;padding:24px;border-radius:18px}.editor select{width:100%}.editor input[type=checkbox]{width:auto;display:inline}.edit-preview{width:150px;height:80px;object-fit:contain}.titocci header img{width:clamp(156px,25vw,285px);max-width:100%}
