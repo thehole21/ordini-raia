@@ -59,3 +59,19 @@ nav button svg{width:21px;height:21px;flex:none}nav button{display:inline-flex;a
   84%,100%{opacity:1;transform:none}
 }
 @media(prefers-reduced-motion:reduce){.titocci-intro .crane-logo{animation:none}}
+
+/* Reserved customer sign-in */
+.signed-out{font-family:"Segoe UI",system-ui,sans-serif;background:#f6f3f2;color:#332a2d}
+.signed-out #app{display:grid;place-items:center;min-height:100svh;padding:clamp(16px,4vw,48px)}
+.signed-out .login{width:min(100%,840px);max-width:none;margin:0;padding:0;display:grid;grid-template-columns:1.05fr 1fr;align-items:stretch;border:1px solid #e4dada;border-radius:20px;overflow:hidden;box-shadow:0 14px 50px #45232b0d}
+.login-welcome,.login-fields{min-width:0;padding:clamp(28px,4vw,48px)}
+.login-welcome{background:#fcf9f8;border-inline-start:5px solid var(--brand);display:flex;flex-direction:column;justify-content:center}
+.signed-out .login img{width:145px;max-width:65%;height:auto;align-self:flex-start;display:block;margin:0 0 26px}
+.signed-out .login h1{font:600 clamp(27px,3.2vw,36px)/1.12 "Segoe UI",system-ui,sans-serif;letter-spacing:-.035em;margin:0 0 12px;text-wrap:balance}
+.signed-out .login p{margin:0;font-size:16px;line-height:1.55;color:#63575b}
+.login-fields{display:grid;align-content:center;gap:18px}
+.login-fields label{display:grid;gap:7px;margin:0;font-size:14px;font-weight:600}
+.login-fields input{height:46px;padding:8px 12px;border:1px solid #cabfc1;border-radius:8px;line-height:1.4;font-family:inherit;font-size:16px;font-weight:400}
+.login-fields button{min-height:46px;font-size:16px;font-weight:600;margin-top:3px}
+.login-fields :is(input,button):focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+@media(max-width:680px){.signed-out .login{max-width:440px;grid-template-columns:1fr}.login-welcome{border-inline-start:0;border-top:4px solid var(--brand);padding:24px 24px 20px}.signed-out .login img{width:116px;margin-bottom:16px}.login-fields{padding:22px 24px 26px;gap:14px}}
