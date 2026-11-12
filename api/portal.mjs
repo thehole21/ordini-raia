@@ -6,8 +6,8 @@ export default async function handler(req,res){
   res.setHeader('Vary','Cookie');
   const send=(status,data)=>{res.statusCode=status;res.end(JSON.stringify(data));};
   try{
-    const url=process.env.SUPABASE_URL;
-    const key=process.env.SUPABASE_PUBLISHABLE_KEY;
+    const url='https://wqhnjmzincfoussybyxd.supabase.co';
+    const key='sb_publishable_HJl8TVYhRGMQTVxUGfhi7w_7uqduMst';
     const action=new URL(req.url,'http://localhost').searchParams.get('action')||'session';
     if(!['GET','POST'].includes(req.method))throw new HttpError(405,'Metodo non consentito.');
     if(req.method==='POST')verifyOrigin(req);
