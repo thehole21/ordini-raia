@@ -99,3 +99,14 @@ nav button svg{width:21px;height:21px;flex:none}nav button{display:inline-flex;a
 
 .brand-moment[open]:has(.crane-stage){width:100%;height:100%;max-width:none;max-height:none;display:grid;place-items:center;outline:none;box-shadow:none;border:0;border-radius:0;overflow:hidden}
 .brand-moment .crane-stage{outline:none}
+
+body{--customer-ink:color-mix(in srgb,var(--brand,#444) 32%,#171719);--customer-accent:var(--brand,#444);--customer-badge:color-mix(in srgb,var(--brand,#444) 14%,white)}
+body.titocci{--customer-ink:#172d64;--customer-accent:#f15922;--customer-badge:#ffbe9e}
+body.rimac{--customer-ink:#292729;--customer-accent:#302e30;--customer-badge:#fff0f0}
+.order-sent{color:var(--customer-ink);box-shadow:0 20px 60px color-mix(in srgb,var(--customer-ink) 25%,transparent)}
+.order-sent img{display:block;width:min(155px,55%);height:42px;object-fit:contain;margin:0 auto 18px}
+.order-sent span{background:var(--brand);border-color:var(--customer-accent)}
+.brand-moment:has(.order-sent)::backdrop{background:color-mix(in srgb,var(--customer-ink) 70%,transparent)}
+.nav-count,.cart-float b{background:var(--customer-badge);color:var(--customer-ink)}
+.cart-float{box-shadow:0 6px 28px color-mix(in srgb,var(--customer-ink) 30%,transparent)}
+body:not(.signed-out) :is(button,input,select,textarea):focus-visible{outline-color:var(--customer-accent)}
