@@ -9,18 +9,19 @@ function overlay(content, label) {
   el.showModal();
   return el;
 }
-export async function craneIntro() {
+export async function telescopicIntro() {
   const el = overlay(`<div class="crane-stage">
-    <svg aria-hidden="true" viewBox="0 0 300 100" class="crane">
-      <g fill="none" stroke="#223c98" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
-        <path d="M43 91h42M56 89V31h15v58M56 86l15-16-15-15 15-15"/>
-        <g class="jib"><path d="M29 31h185L66 9 29 31zM65 10v21m1-19 27 19 16-13 20 13 13-9 21 9"/>
-        <path stroke="#f15922" d="M189 31v28q0 10-8 9-5-1-5-6"/></g>
-      </g></svg><img class="crane-logo" src="/titocci-logo.png" alt="Titocci Noleggio"></div>`, 'Accesso Titocci');
+    <svg aria-hidden="true" viewBox="0 0 300 100" class="boom-machine">
+      <g transform="translate(46 77) rotate(-18)">
+        <g class="boom-middle"><g class="boom-tip"><rect x="50" y="-4" width="57" height="8" rx="2" fill="#f15922"/><circle cx="106" cy="0" r="5" fill="#243c91"/></g>
+        <rect x="38" y="-6" width="56" height="12" rx="2" fill="#516fc4"/></g>
+        <rect x="0" y="-8" width="76" height="16" rx="4" fill="#223c98"/><rect x="68" y="-9" width="8" height="18" rx="2" fill="#f15922"/>
+      </g><path d="M24 78h19l6-16h12l9 16h10v9H24z" fill="#243c91"/>
+      <g fill="#17294e" stroke="white" stroke-width="2"><circle cx="36" cy="87" r="8"/><circle cx="68" cy="87" r="8"/></g></svg><img class="crane-logo" src="/titocci-logo.png" alt="Titocci Noleggio"></div>`, 'Accesso Titocci');
   try {
     const logo = el.querySelector('img');
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    await wait(reduced ? 300 : 1420);
+    await wait(reduced ? 300 : 1700);
     const target = document.querySelector('header img');
     if (target && !reduced) {
       const a = logo.getBoundingClientRect(), b = target.getBoundingClientRect();
