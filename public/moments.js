@@ -9,7 +9,7 @@ function overlay(content, label) {
   el.showModal();
   return el;
 }
-export async function telescopicIntro(slug, imageUrl, name) {
+export async function telescopicIntro(slug, imageUrl, name, ready=Promise.resolve()) {
   const el = overlay(`<div class="crane-stage">
     <svg aria-hidden="true" viewBox="0 0 300 108" class="handler-art">
 <g transform="translate(75 73) rotate(-18)">
@@ -27,7 +27,7 @@ export async function telescopicIntro(slug, imageUrl, name) {
     logo.alt=name;
     if(imageUrl){logo.src=imageUrl;}else{const label=document.createElement('strong');label.className='customer-name';label.textContent=name;el.querySelector('.crane-stage').append(label);logo.hidden=true;}
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    await wait(reduced ? 300 : 1850);
+    await Promise.all([ready,wait(reduced ? 250 : 1650)]);
     const target = document.querySelector('header img');
     if (target && imageUrl && !reduced) {
       const a = logo.getBoundingClientRect(), b = target.getBoundingClientRect();

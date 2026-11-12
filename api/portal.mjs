@@ -68,19 +68,23 @@ export default async function handler(req,res){
     if(!user)throw new HttpError(401,'Accedi al tuo spazio riservato.');
     const db=(path,options={})=>upstream('/rest/v1/'+path,{...options,token});
     const rpc=(name,data={})=>db('rpc/'+name,{method:'POST',data});
-    const staff=await rpc('ordini_is_staff');
-    const catalogManager=staff||await rpc('ordini_catalog_manager');
+    const readOrders=()=>db('ordini_orders?select=*,ordini_order_items(*)&order=created_at.desc&limit=200');
+    if(action==='history')return send(200,{user:{id:user.id},orders:await readOrders()});
+    const roles=Promise.all([rpc('ordini_is_staff'),rpc('ordini_catalog_manager')]);
     if(action==='session'){
-      const [companies,memberships,products,orders,clients,sections]=await Promise.all([
+      const [companies,memberships,products,orders,clients,sections,[staff,manager]]=await Promise.all([
         db('ordini_companies?select=*&order=name'),
         db('ordini_memberships?select=*&order=name'),
         db('ordini_products?select=*&order=created_at.desc'),
-        db('ordini_orders?select=*,ordini_order_items(*)&order=created_at.desc&limit=200'),
-        staff?rpc('ordini_clients'):Promise.resolve([]),db("ordini_sections?select=*&order=position")
+        readOrders(),
+        roles.then(([staff])=>staff?rpc('ordini_clients'):[]),db("ordini_sections?select=*&order=position"),roles
       ]);
+      const catalogManager=staff||manager;
       if(!catalogManager&&!memberships.some(m=>m.user_id===user.id&&m.active))throw new HttpError(403,'Il tuo accesso non è ancora abilitato. Contatta RAIA.');
       return send(200,{user:{id:user.id,email:user.email},staff,catalogManager,companies,memberships,products,orders,clients,sections,canCreateUsers:staff&&!!process.env.SUPABASE_SECRET_KEY});
     }
+    const [staff,manager]=await roles;
+    const catalogManager=staff||manager;
     if(req.method!=='POST')throw new HttpError(405,'Metodo non consentito.');
     if(action==='submit'){
       if(!uuid(body.request_id)||!uuid(body.company_id)||!Array.isArray(body.items)||body.items.length>50)throw new HttpError(400,'Ordine non valido.');
