@@ -37,3 +37,9 @@ export async function orderConfirmation(){
   const el = overlay('<section class="sent-card" role="status"><span aria-hidden="true">✓</span><h2>Ordine inviato!</h2><p>Grazie per aver scelto RAIA S.r.l.</p></section>', 'Ordine inviato');
   try { await wait(2100); } finally { el.remove(); }
 }
+
+export async function productConfirmation(updated) {
+  const title = updated ? 'Prodotto aggiornato' : 'Prodotto aggiunto';
+  const el = overlay('<section class="sent-card product-saved" role="status"><span aria-hidden="true">✓</span><h2>'+title+'</h2></section>', title);
+  try { await wait(2000); } finally { el.remove(); }
+}
