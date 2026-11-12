@@ -39,3 +39,8 @@ nav button svg{width:21px;height:21px;flex:none}nav button{display:inline-flex;a
 .raia-loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#fcfaf9}
 .raia-loading img{display:block;width:clamp(138px,22vw,170px);height:auto}
 .raia-loading p{margin:0;color:#72404b;font-size:14px;font-weight:500;letter-spacing:.08em}
+
+.handler-art{position:absolute;inset:0;width:100%;height:100%;animation:boom-finish 1.5s both}
+.handler-slider{animation:fork-extension 1s cubic-bezier(.3,0,.22,1) both}
+@keyframes fork-extension{from{transform:translateX(-34px)}to{transform:translateX(32px)}}
+@media(prefers-reduced-motion:reduce){.handler-art{display:none}}

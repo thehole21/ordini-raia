@@ -11,13 +11,16 @@ function overlay(content, label) {
 }
 export async function telescopicIntro() {
   const el = overlay(`<div class="crane-stage">
-    <svg aria-hidden="true" viewBox="0 0 300 100" class="boom-machine">
-      <g transform="translate(46 77) rotate(-18)">
-        <g class="boom-middle"><g class="boom-tip"><rect x="50" y="-4" width="57" height="8" rx="2" fill="#f15922"/><circle cx="106" cy="0" r="5" fill="#243c91"/></g>
-        <rect x="38" y="-6" width="56" height="12" rx="2" fill="#516fc4"/></g>
-        <rect x="0" y="-8" width="76" height="16" rx="4" fill="#223c98"/><rect x="68" y="-9" width="8" height="18" rx="2" fill="#f15922"/>
-      </g><path d="M24 78h19l6-16h12l9 16h10v9H24z" fill="#243c91"/>
-      <g fill="#17294e" stroke="white" stroke-width="2"><circle cx="36" cy="87" r="8"/><circle cx="68" cy="87" r="8"/></g></svg><img class="crane-logo" src="/titocci-logo.png" alt="Titocci Noleggio"></div>`, 'Accesso Titocci');
+    <svg aria-hidden="true" viewBox="0 0 300 108" class="handler-art">
+<g transform="translate(75 73) rotate(-18)">
+ <g class="handler-slider"><path fill="#344a78" d="M40-5h90v9H40z"/>
+ <g transform="translate(129 0) rotate(18)"><path d="M0-3v21h25m-20-20v16h23" fill="none" stroke="#17294e" stroke-width="3" stroke-linejoin="round"/></g></g>
+ <path fill="#f15922" d="M-5-8h97v15H-5z"/><path fill="#ff9666" d="M0-7h87v3H0z"/><path fill="#223c98" d="M86-9h8v18h-8z"/>
+</g><path fill="#223c98" d="M41 70l10-9 30 2 5 9h44l9 8-4 10H42z"/>
+<path fill="#142952" d="M75 71l4-28h23l11 28z"/><path fill="#c8e2eb" d="M83 47h8v19H80zm12 0h5l8 19H95z"/>
+<path fill="#f15922" d="M44 71h29l4 6h57v6H43z"/>
+<g fill="#18263b" stroke="#34455c" stroke-width="3"><circle cx="60" cy="88" r="13"/><circle cx="121" cy="88" r="15"/></g>
+<g fill="#e4eaf1"><circle cx="60" cy="88" r="6"/><circle cx="121" cy="88" r="7"/></g></svg><img class="crane-logo" src="/titocci-logo.png" alt="Titocci Noleggio"></div>`, 'Accesso Titocci');
   try {
     const logo = el.querySelector('img');
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
