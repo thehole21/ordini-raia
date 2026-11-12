@@ -8,3 +8,5 @@ In Supabase Authentication creare un utente confermato con email tecnica titocci
 
 Importare la repository su Vercel, impostare le variabili di .env.example (chiave segreta solo per creare altri utenti). Configurazione build già in vercel.json. In locale: Node 22.9 o superiore, npm run dev. Verifica con npm run build.
 
+
+Dopo portal.sql applicare database/order-visibility.sql per mostrare nello storico soltanto le commesse ancora presenti nel gestionale.
