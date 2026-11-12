@@ -20,12 +20,12 @@ export async function telescopicIntro(slug="titocci") {
 <path fill="#142952" d="M75 71l4-28h23l11 28z"/><path fill="#c8e2eb" d="M83 47h8v19H80zm12 0h5l8 19H95z"/>
 <path fill="#f15922" d="M44 71h29l4 6h57v6H43z"/>
 <g fill="#18263b" stroke="#34455c" stroke-width="3"><circle cx="60" cy="88" r="13"/><circle cx="121" cy="88" r="15"/></g>
-<g fill="#e4eaf1"><circle cx="60" cy="88" r="6"/><circle cx="121" cy="88" r="7"/></g></svg><img class="crane-logo" src="/${slug==="rimac"?"rimac":"titocci"}-logo.png" alt="${slug==="rimac"?"Rimac":"Titocci Noleggio"}"></div>`, 'Accesso '+slug);
+<g fill="#e4eaf1"><circle cx="60" cy="88" r="6"/><circle cx="121" cy="88" r="7"/></g></svg><img class="crane-logo" src="${slug==="rimac"?"/rimac-logo.png":"/adesivi/TITO.A300.1650.png"}" alt="${slug==="rimac"?"Rimac":"Titocci Noleggio"}"></div>`, 'Accesso '+slug);
   try {
-    if(slug==="rimac")el.classList.add("rimac-intro");
+    el.classList.add(slug==="rimac" ? "rimac-intro" : "titocci-intro");
     const logo = el.querySelector('img');
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    await wait(reduced ? 300 : 1700);
+    await wait(reduced ? 300 : slug==="titocci" ? 2050 : 1700);
     const target = document.querySelector('header img');
     if (target && !reduced) {
       const a = logo.getBoundingClientRect(), b = target.getBoundingClientRect();
