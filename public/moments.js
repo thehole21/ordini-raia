@@ -9,7 +9,7 @@ function overlay(content, label) {
   el.showModal();
   return el;
 }
-export async function telescopicIntro(slug="titocci") {
+export async function telescopicIntro(slug, imageUrl, name) {
   const el = overlay(`<div class="crane-stage">
     <svg aria-hidden="true" viewBox="0 0 300 108" class="handler-art">
 <g transform="translate(75 73) rotate(-18)">
@@ -20,14 +20,16 @@ export async function telescopicIntro(slug="titocci") {
 <path fill="#142952" d="M75 71l4-28h23l11 28z"/><path fill="#c8e2eb" d="M83 47h8v19H80zm12 0h5l8 19H95z"/>
 <path fill="#f15922" d="M44 71h29l4 6h57v6H43z"/>
 <g fill="#18263b" stroke="#34455c" stroke-width="3"><circle cx="60" cy="88" r="13"/><circle cx="121" cy="88" r="15"/></g>
-<g fill="#e4eaf1"><circle cx="60" cy="88" r="6"/><circle cx="121" cy="88" r="7"/></g></svg><img class="crane-logo" src="${slug==="rimac"?"/rimac-logo.png":"/adesivi/TITO.A300.1650.png"}" alt="${slug==="rimac"?"Rimac":"Titocci Noleggio"}"></div>`, 'Accesso '+slug);
+<g fill="#e4eaf1"><circle cx="60" cy="88" r="6"/><circle cx="121" cy="88" r="7"/></g></svg><img class="crane-logo" alt=""></div>`, "Accesso "+name);
   try {
     el.classList.add(slug==="rimac" ? "rimac-intro" : "titocci-intro");
     const logo = el.querySelector('img');
+    logo.alt=name;
+    if(imageUrl){logo.src=imageUrl;}else{const label=document.createElement('strong');label.className='customer-name';label.textContent=name;el.querySelector('.crane-stage').append(label);logo.hidden=true;}
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    await wait(reduced ? 300 : slug==="titocci" ? 2050 : 1700);
+    await wait(reduced ? 300 : 1850);
     const target = document.querySelector('header img');
-    if (target && !reduced) {
+    if (target && imageUrl && !reduced) {
       const a = logo.getBoundingClientRect(), b = target.getBoundingClientRect();
       await logo.animate([{transform:'none'},{transform:`translate(${b.left-a.left}px,${b.top-a.top}px) scale(${b.width/a.width})`}],{duration:370,easing:'cubic-bezier(.45,0,.2,1)',fill:'forwards'}).finished;
     }
